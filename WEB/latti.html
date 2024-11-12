@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groundwater Predictor</title>
+    <style>
+        /* Ensure the entire body takes up the full screen */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Full-screen background image */
+        body {
+            background-image: url("images/immm.jpg"); /* Replace with your image path */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            color: #ffffff; /* Text color for visibility over background */
+        }
+
+        /* Layout container */
+        .container {
+            display: flex;
+            justify-content: center; /* Center content within container */
+            align-items: center; /* Center vertically */
+            padding: 20px;
+            height: calc(100vh - 40px);
+            background-color: rgba(0, 0, 0, 0.6); /* Slight overlay for readability */
+            border-radius: 10px;
+            margin: auto;
+        }
+
+        /* Left Content Section */
+        .left-content {
+            width: 40%;
+            background-color: purple;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-right: 20px; /* Space between sections */
+        }
+
+        /* Image Section */
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20%;
+            margin: auto; /* Center the image container */
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 20px; /* Increased gap between images */
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Content Section -->
+    <div class="container">
+        <!-- Left Content Section -->
+        <div class="left-content">
+            <h2>Groundwater Data</h2>
+            <p>78.0388° (°E)</p>
+            <p>14.04526° (°N)</p>
+            <p>727.1385 m (GWL)</p>
+            <p>117.54 °F</p>
+            <p>97.46 %</p>
+        </div>
+
+        <!-- Image Section -->
+        <div class="image-container">
+            <img src="images/latti.ppm" alt="Latitude Image">
+            <img src="images/longi.png" alt="Longitude Image">
+        </div>
+    </div>
+</body>
+</html>

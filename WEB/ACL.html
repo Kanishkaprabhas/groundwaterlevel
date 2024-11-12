@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Management Settings</title>
+    <style>
+        /* Basic Styles for the Page */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            background-image: url("images/immm.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .setting-group {
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .location-settings {
+            background-color: #e0ffe0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .favorites-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        .favorites-list li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .favorites-list button {
+            background-color: #ff6666;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .favorites-list button:hover {
+            background-color: #ff4d4d;
+        }
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Location Management Settings</h2>
+        
+        <!-- Default Location Setting -->
+        <div class="setting-group location-settings">
+            <label for="default-location">Set Default Location (City)</label>
+            <input type="text" id="default-location" placeholder="Enter city to set as default">
+            <button onclick="getLocationCoordinates('default')">Get City Coordinates</button>
+            <div id="location-result" style="margin-top: 10px;"></div>
+        </div>
+
+        <!-- Add Locations within the Default City -->
+        <div class="setting-group location-settings">
+            <label for="city-location">Add Specific Location within Default City</label>
+            <input type="text" id="city-location" placeholder="Enter specific place within the default city">
+            <button onclick="addCityLocation()">Add Location</button>
+            <ul class="favorites-list" id="city-locations-list"></ul>
+        </div>
+
+        <!-- Auto-Detect Location Toggle -->
+        <div class="setting-group location-settings">
+            <label>Enable GPS-based Location Detection</label>
+            <div class="toggle-container">
+                <input type="checkbox" id="gps-toggle" onclick="toggleLocationDetection()">
+                <label for="gps-toggle">Auto-detect Location</label>
+            </div>
+            <div id="gps-status" style="margin-top: 10px;"></div>
+        </div>
+
+        <button class="submit-btn" onclick="saveSettings()">Save Settings</button>
+    </div>
+
+    <script>
+        const apiKey = 'e00e23175680436eb0b76cc269b30bd9'; // Replace with your OpenCage API Key
+        let cityLocations = [];
+
+        // Fetch coordinates for a given location
+        function getLocationCoordinates(type) {
+            const locationName = type === 'default' 
+                ? document.getElementById('default-location').value 
+                : document.getElementById('city-location').value;
+
+            if (locationName.trim() === '') {
+                alert('Please enter a location name.');
+                return;
+            }
+
+            const apiUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(locationName)}&key=${apiKey}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results.length > 0) {
+                        const lat = data.results[0].geometry.lat;
+                        const lng = data.results[0].geometry.lng;
+
+                        if (type === 'default') {
+                            document.getElementById('location-result').innerHTML = `Coordinates for ${locationName}: Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`;
+                        } else {
+                            addLocationToList(locationName, lat, lng);
+                        }
+                    } else {
+                        alert('No results found for this location.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching location data:', error);
+                    alert('Error fetching location data.');
+                });
+        }
+
+        // Add a specific location to the list and fetch its coordinates
+        function addCityLocation() {
+            const specificLocation = document.getElementById('city-location').value.trim();
+
+            if (!document.getElementById('default-location').value.trim()) {
+                alert('Please set a default city first.');
+                return;
+            }
+            if (!specificLocation) {
+                alert('Please enter a specific location within the city.');
+                return;
+            }
+
+            getLocationCoordinates('specific');
+            document.getElementById('city-location').value = ''; // Clear input
+        }
+
+        // Add the location to the list with coordinates
+        function addLocationToList(locationName, lat, lng) {
+            cityLocations.push({ name: locationName, latitude: lat, longitude: lng });
+            renderCityLocations();
+        }
+
+        // Render the specific city locations list with coordinates
+        function renderCityLocations() {
+            const cityLocationsList = document.getElementById('city-locations-list');
+            cityLocationsList.innerHTML = '';
+
+            cityLocations.forEach((location, index) => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `${location.name} - Latitude: ${location.latitude.toFixed(6)}, Longitude: ${location.longitude.toFixed(6)} 
+                    <button onclick="removeCityLocation(${index})">Remove</button>`;
+                cityLocationsList.appendChild(listItem);
+            });
+        }
+
+        // Remove a specific city location
+        function removeCityLocation(index) {
+            cityLocations.splice(index, 1);
+            renderCityLocations();
+        }
+
+        // Toggle GPS-based location detection with improved error handling
+        function toggleLocationDetection() {
+            const gpsToggle = document.getElementById('gps-toggle');
+            const gpsStatus = document.getElementById('gps-status');
+
+            if (gpsToggle.checked) {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        position => {
+                            const latitude = position.coords.latitude;
+                            const longitude = position.coords.longitude;
+                            gpsStatus.innerHTML = `Detected GPS Location: Latitude: ${latitude.toFixed(6)}, Longitude: ${longitude.toFixed(6)}`;
+                        },
+                        error => {
+                            handleGeolocationError(error, gpsStatus);
+                        }
+                    );
+                } else {
+                    gpsStatus.innerHTML = 'Geolocation is not supported by this browser.';
+                }
+            } else {
+                gpsStatus.innerHTML = '';
+            }
+        }
+
+        // Handle geolocation errors
+        function handleGeolocationError(error, gpsStatus) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    gpsStatus.innerHTML = "Permission denied. Please enable location access.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    gpsStatus.innerHTML = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    gpsStatus.innerHTML = "Location request timed out. Please try again.";
+                    break;
+                default:
+                    gpsStatus.innerHTML = "An unknown error occurred.";
+                    break;
+            }
+        }
+
+        // Save settings
+        function saveSettings() {
+            const defaultCity = document.getElementById('default-location').value;
+            const gpsEnabled = document.getElementById('gps-toggle').checked;
+
+            const settings = {
+                defaultCity: defaultCity,
+                cityLocations: cityLocations,
+                gpsEnabled: gpsEnabled
+            };
+
+            console.log('Settings Saved:', settings);
+            alert('Settings saved successfully!');
+        }
+    </script>
+</body>
+</html>
